@@ -57,7 +57,7 @@
         </div>
 
         <div id="errorAlert" class="hidden mt-6 bg-red-100 p-4 rounded-lg border border-red-300 text-red-700">
-            An error occurred while getting the recommendation. This is likely due to browser security settings when running the file locally. It should work correctly when hosted online. Please try again.
+            An error occurred while getting the recommendation. Please check the console for details.
         </div>
 
         <div id="messageBox" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
@@ -81,70 +81,213 @@
         const messageContent = document.getElementById('messageContent');
         const closeMessageBtn = document.getElementById('closeMessageBtn');
 
-        // Your song catalog from the provided document
+        // Your song catalog with added lyrics and instrumental info.
         const mySongData = `
         Joseph Schwartz Music Roadmap
         I. Artist Reflections (Mid 2025)
         - Modern Art (Released July 31, 2025): a collection of songs about the creator experience.
           - Treadmill of hope: Pop with a rock edge, about the daily experiences of emerging artists and creators.
+            [LYRICS: ADD LYRICS HERE]
           - Poison Darts: Focuses on random online negativity and chasing likes. Relatable to people on social media.
+            [LYRICS: ADD LYRICS HERE]
           - What is art?: A reaction to anti-AI sentiment online, arguing that art should be judged on its own merits, not its creation method.
+            [LYRICS: ADD LYRICS HERE]
           - Best of eight: Self-referential song about an AI-assisted creation process.
+            [LYRICS: ADD LYRICS HERE]
           - Overnight success: Originally about the virtues of "Patience + Righteousness," now a song on the topic of patience and principles.
+            [LYRICS: ADD LYRICS HERE]
         II. Post-Election Reflections (Late 2024 - Early 2025)
         - No going back (Released May 29, 2025): Sane, practical view, about how evil needs misguided commitment, fear, lies, and greed.
+            [LYRICS: ADD LYRICS HERE]
         - Gaslighting (Released May 16, 2025): Reflects anger and despair at political division, but with a hopeful tone.
+            [LYRICS: ADD LYRICS HERE]
         - We're All Screwed (Released March 15, 2025): Expression of anger and despair at political division.
+            [LYRICS: ADD LYRICS HERE]
         - Better Off (Released March 2, 2025): Satirical critique of Trump and Musk, exploring "daddy issues."
+            [LYRICS: ADD LYRICS HERE]
         - Rise Above the Rage (Released December 2, 2024): A pre-election call for unity.
+            [LYRICS: ADD LYRICS HERE]
         - What Happened to Us? (Released November 19, 2024): A lament for broken relationships and societal divisions.
+            [LYRICS: ADD LYRICS HERE]
         - Truth is Dead (Released January 2, 2025): Reflects disillusionment and the loss of truth.
+            [LYRICS: ADD LYRICS HERE]
         - Screaming into the Abyss (Album - Released April 2, 2024): Collection of political songs.
           - Anger is all that matters: Two distinct voices about the self-destructive anger of the left and right.
+            [LYRICS: ADD LYRICS HERE]
           - The Aftermath: Defiant anti-Trump song, reminiscent of Amy Lee.
+            [LYRICS: ADD LYRICS HERE]
           - Pop Serenity Prayer: An inspiring pop interpretation of the Serenity Prayer.
+            [LYRICS: ADD LYRICS HERE]
           - Battle against false prophets: Christian Rock song about fighting against Trump.
+            [LYRICS: ADD LYRICS HERE]
           - The future: Pink Floyd/Alan Parsons feel, about the feelings people have about the future.
+            [LYRICS: ADD LYRICS HERE]
           - The ballad of Donald: Traditional political folk song about Trump.
+            [LYRICS: ADD LYRICS HERE]
         III. Standalone Releases
         - J’adore manger a Gascogne (Released June 2, 2025): Happy, humorous song about food, inspired by a culinary tour in France.
+            [LYRICS: ADD LYRICS HERE]
         - Searching for Purpose (Released November 8, 2024): Country song built from a single hook.
+            [LYRICS: ADD LYRICS HERE]
         - Perspective (Released November 5, 2024): Pop Country, an uplifting song about overcoming fear.
+            [LYRICS: ADD LYRICS HERE]
         - Songs That Need To Be Released (Album - Released January 2, 2025): Wildly diverse songs.
           - Ezekiel 23:20: A forceful response to book burning, quoting a biblical verse.
+            [LYRICS: ADD LYRICS HERE]
           - Just Be Nice!: High-energy dance song with a forceful call for kindness.
+            [LYRICS: ADD LYRICS HERE]
           - Changing my view: Song about an alternative perspective.
+            [LYRICS: ADD LYRICS HERE]
           - The Raven: Alt-metal adaptation of Poe's poem.
+            [LYRICS: ADD LYRICS HERE]
           - Humility: Explores the virtue of humility, aligned with Montaigne's writings.
+            [LYRICS: ADD LYRICS HERE]
           - Perfect Being: Explores loneliness from a vampiress's perspective.
+            [LYRICS: ADD LYRICS HERE]
           - No Win: Expresses the feeling of being trapped.
+            [LYRICS: ADD LYRICS HERE]
           - Hold it back: Silly song.
+            [LYRICS: ADD LYRICS HERE]
           - Caca vs. Me: Silly song about stomach issues on vacation.
+            [LYRICS: ADD LYRICS HERE]
         IV. Collaboration with Herman Bean
         - My Angel (Country and Pop versions): Most streamed song, lyrics by Herman Bean.
+            [LYRICS: ADD LYRICS HERE]
         - Beauty Queen (Country and Alternative versions)
+            [LYRICS: ADD LYRICS HERE]
         - Movin’ On (Country and Rock versions)
+            [LYRICS: ADD LYRICS HERE]
         - Searching for a star (Rock and Disco versions)
+            [LYRICS: ADD LYRICS HERE]
         - Herman Bean: Captures the story of the lyricist's sister.
+            [LYRICS: ADD LYRICS HERE]
         V. Conceptual Projects
         - Wings of Faith (Released November 12, 2024): Captures the essence of a quote by Steven Weinberg about faith.
+            [LYRICS: ADD LYRICS HERE]
         - Virtues (Project): Explores virtues.
           - Kindness: Storytelling singer-songwriter song about the personal benefits of kindness.
+            [LYRICS: ADD LYRICS HERE]
         - Dance Like the Man (all versions): A single song with different genre arrangements (Americana, Pop Country, Deep House) with lyrics as a rant about Trump sycophants.
+            [LYRICS: ADD LYRICS HERE]
         - Seven Deadly Sins (Album): Each song embodies a sin in a radio-friendly way.
           - Sloth: REM-like jangle pop.
+            [LYRICS: ADD LYRICS HERE]
           - Pride: Power pop/rock.
+            [LYRICS: ADD LYRICS HERE]
           - Greed: Alt-rock.
+            [LYRICS: ADD LYRICS HERE]
           - Lust, Vanity, Gluttony, Wrath.
+            [LYRICS: ADD LYRICS HERE]
         VI. Early Explorations (Pre-July 2024)
         - Tangled Words (Released October 23, 2024): Critiques the language of the Second Amendment.
+            [LYRICS: ADD LYRICS HERE]
         - The Hardest Truth of All (Released November 8, 2024): Captures the feeling of a MAGA supporter being misled.
+            [LYRICS: ADD LYRICS HERE]
         - Woken from a Lie (Released February 26, 2025): Similar to "The Hardest Truth of All."
+            [LYRICS: ADD LYRICS HERE]
+        - Icebox Pi: A relaxing, minimalist instrumental piece. It is perfect for studying or meditation.
+            - Albums: Relax, Cosmic Window Shopping, Peaceful Journey.
+            - Relax and Cosmic Window Shopping are ambient drone albums that feel like a float around the universe.
+            - Peaceful Journey is a more new-age album.
+            [LYRICS: INSTRUMENTAL]
+        - Herman Bean Country and Variants (Album): Showcases the versatility of Herman Bean's lyrics by presenting different musical interpretations of the same lyrics.
+          - My Angel (Country Version)
+          - My Angel (Pop Version)
+          - Beauty Queen (Country Version)
+          - Beauty Queen (Alternative Version)
+          - Movin’ On (Country Version)
+          - Movin’ On (Rock Version)
+          - Searching for a star (Rock Version)
+          - Searching for a star (Disco Version)
+        - Songs by Herman Bean (Album - Released December 12, 2024): The first full album of collaboration with lyricist Herman Bean
+          - Through his eyes
+          - Keep on walking
+          - The time is coming
+          - Child grows
+          - Summertime
+          - Win or lose
+          - That's the way it should be
+          - I'll see you in the heavens tonight
+          - Fighter!
         `;
 
-        const apiKey = "AIzaSyBgpL6IRplVSW_mummYo_yQ-G2CKeAliUM";
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        const googleApiKey = "AIzaSyBgpL6IRplVSW_mummYo_yQ-G2CKeAliUM";
+        const googleApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${googleApiKey}`;
+        
+        // Spotify API Credentials
+        const spotifyClientId = '5f4a9b9322b44626fcb7b5bba3a40';
+        const spotifyRedirectUri = 'https://joesp314.github.io/song-recommender/'; 
+        let spotifyAccessToken = null;
 
+        // --- AUTHENTICATION FLOW ---
+        window.onload = function() {
+            // Check for access token in the URL hash after redirect
+            const hash = window.location.hash
+                .substring(1)
+                .split('&')
+                .reduce(function (initial, item) {
+                    if (item) {
+                        var parts = item.split('=');
+                        initial[parts[0]] = decodeURIComponent(parts[1]);
+                    }
+                    return initial;
+                }, {});
+
+            window.location.hash = '';
+
+            if (hash.access_token) {
+                spotifyAccessToken = hash.access_token;
+                showMessage('Spotify access granted! You can now get song recommendations with working links.');
+            }
+        };
+
+        async function authenticateWithSpotify() {
+            const scope = 'user-read-private user-read-email';
+            const authUrl = `https://accounts.spotify.com/authorize?response_type=token&client_id=${spotifyClientId}&scope=${encodeURIComponent(scope)}&redirect_uri=${encodeURIComponent(spotifyRedirectUri)}`;
+            window.location.href = authUrl;
+        }
+
+        async function searchSpotify(query) {
+            if (!spotifyAccessToken) {
+                showMessage("Please log in to Spotify first to get a real song link.");
+                authenticateWithSpotify();
+                return null;
+            }
+
+            try {
+                const response = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=1`, {
+                    headers: {
+                        'Authorization': `Bearer ${spotifyAccessToken}`
+                    }
+                });
+
+                if (response.status === 401) {
+                    // Token expired, re-authenticate
+                    spotifyAccessToken = null;
+                    showMessage("Your Spotify session has expired. Please log in again.");
+                    authenticateWithSpotify();
+                    return null;
+                }
+
+                if (!response.ok) {
+                    throw new Error(`Spotify API error: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const track = data.tracks.items[0];
+
+                if (track) {
+                    return track.external_urls.spotify;
+                } else {
+                    return null;
+                }
+            } catch (error) {
+                console.error("Spotify API Search Error:", error);
+                return null;
+            }
+        }
+
+        // --- RECOMMENDATION LOGIC ---
         recommendBtn.addEventListener('click', async () => {
             const prompt = promptInput.value.trim();
             if (prompt === "") {
@@ -166,45 +309,37 @@
 
             Your response should be a concise, single paragraph. Include the song title and artist. If the song is from the provided catalog, also include a brief explanation of why you chose it, using details from the catalog. Do not use markdown formatting.
             
-            After the recommendation and explanation, on a new line, provide a URL for a placeholder Spotify link. Do not generate a real link. Use the format "https://open.spotify.com/track/placeholder".
-
             Example output:
-            "A perfect song for your request is 'Rise Above the Rage' by Joseph Schwartz. This song is a pre-election call for unity and a great fit for a message of hope.
-            https://open.spotify.com/track/placeholder"
+            "A perfect song for your request is 'Rise Above the Rage' by Joseph Schwartz. This song is a pre-election call for unity and a great fit for a message of hope."
             `;
 
             const userQuery = `Recommend a song based on this: "${prompt}"`;
 
-            const payload = {
-                contents: [{
-                    parts: [{
-                        text: userQuery
-                    }]
-                }],
-                tools: [{
-                    "google_search": {}
-                }],
-                systemInstruction: {
-                    parts: [{
-                        text: systemPrompt
-                    }]
-                },
-            };
-
             let recommendationText = '';
-            let sources = [];
+            let spotifyLink = '#';
 
             try {
-                const response = await fetch(apiUrl, {
+                const response = await fetch(googleApiUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: userQuery
+                            }]
+                        }],
+                        systemInstruction: {
+                            parts: [{
+                                text: systemPrompt
+                            }]
+                        }
+                    })
                 });
 
                 if (!response.ok) {
-                    throw new Error(`API error: ${response.status} ${response.statusText}`);
+                    throw new Error(`Google API error: ${response.status} ${response.statusText}`);
                 }
 
                 const result = await response.json();
@@ -212,30 +347,45 @@
 
                 if (candidate && candidate.content?.parts?.[0]?.text) {
                     recommendationText = candidate.content.parts[0].text;
-                    const lines = recommendationText.split('\n');
-                    const titleLine = lines[0];
-                    const descriptionLine = lines[1];
-                    const linkLine = lines[2];
+                    const match = recommendationText.match(/'([^']+)' by (.+)/);
+                    if (match) {
+                        const songName = match[1];
+                        const artistName = match[2];
 
-                    if (titleLine && linkLine) {
-                        songTitle.textContent = titleLine;
-                        songDescription.textContent = descriptionLine;
-                        songLink.href = linkLine;
+                        songTitle.textContent = `"${songName}" by ${artistName}`;
+                        songDescription.textContent = recommendationText;
 
+                        // Now search for the real link on Spotify
+                        spotifyLink = await searchSpotify(`${songName} ${artistName}`);
+                        if (spotifyLink) {
+                            songLink.href = spotifyLink;
+                        } else {
+                            // If Spotify search fails, provide a fallback link and message
+                            songLink.href = "#";
+                            songLink.textContent = "Link not found on Spotify.";
+                        }
+                        
                         recommendationResult.classList.remove('hidden');
-                        errorAlert.classList.add('hidden');
                     } else {
-                        throw new Error('Invalid API response format');
+                        throw new Error('Could not parse song title and artist from AI response.');
                     }
                 } else {
                     throw new Error('No recommendation found in the response.');
                 }
             } catch (error) {
                 console.error("Fetch error:", error);
+                errorAlert.textContent = `An error occurred: ${error.message}`;
                 errorAlert.classList.remove('hidden');
             } finally {
                 loadingIndicator.classList.add('hidden');
                 recommendBtn.disabled = false;
+            }
+        });
+
+        // Event listener for the Enter key on the input field
+        promptInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                recommendBtn.click();
             }
         });
 
@@ -251,4 +401,3 @@
 </body>
 
 </html>
-
