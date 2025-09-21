@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Song Recommender</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-2xl">
+        <div class="text-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">AI Song Recommender</h1>
+            <p class="text-gray-600 mt-2">Find the perfect song for any mood, topic, or genre.</p>
+        </div>
+
+        <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 mb-6">
+            <input id="promptInput" type="text"
+                class="flex-1 p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                placeholder="e.g., 'A song about anger and despair' or 'High-energy dance track'">
+            <button id="recommendBtn"
+                class="px-6 py-3 bg-indigo-600 text-white rounded-md font-semibold hover:bg-indigo-700 transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                Get Recommendation
+            </button>
+        </div>
+
+        <div id="loadingIndicator" class="hidden text-center text-indigo-600 mt-4">
+            <div class="flex items-center justify-center">
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg"
+                    fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                Processing your request...
+            </div>
+        </div>
+
+        <div id="recommendationResult" class="hidden mt-6 bg-gray-50 p-6 rounded-lg border border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800 mb-2">Recommended Song:</h2>
+            <div id="songTitle" class="text-lg font-bold text-indigo-600"></div>
+            <div id="songDescription" class="text-gray-700 mt-2"></div>
+            <a id="songLink" href="#" target="_blank"
+                class="inline-block mt-4 text-indigo-600 font-medium hover:text-indigo-800 transition-colors">Listen
+                on Spotify</a>
+        </div>
+
+        <div id="errorAlert" class="hidden mt-6 bg-red-100 p-4 rounded-lg border border-red-300 text-red-700">
+            An error occurred while getting the recommendation. This is likely due to browser security settings when running the file locally. It should work correctly when hosted online. Please try again.
+        </div>
+
+        <div id="messageBox" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+            <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm mx-auto text-center">
+                <p id="messageContent" class="text-gray-800 mb-4"></p>
+                <button id="closeMessageBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-md">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const promptInput = document.getElementById('promptInput');
+        const recommendBtn = document.getElementById('recommendBtn');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const recommendationResult = document.getElementById('recommendationResult');
+        const songTitle = document.getElementById('songTitle');
+        const songDescription = document.getElementById('songDescription');
+        const songLink = document.getElementById('songLink');
+        const errorAlert = document.getElementById('errorAlert');
+        const messageBox = document.getElementById('messageBox');
+        const messageContent = document.getElementById('messageContent');
+        const closeMessageBtn = document.getElementById('closeMessageBtn');
+
+        // Your song catalog from the provided document
+        const mySongData = `
+        Joseph Schwartz Music Roadmap
+        I. Artist Reflections (Mid 2025)
+        - Modern Art (Released July 31, 2025): a collection of songs about the creator experience.
+          - Treadmill of hope: Pop with a rock edge, about the daily experiences of emerging artists and creators.
+          - Poison Darts: Focuses on random online negativity and chasing likes. Relatable to people on social media.
+          - What is art?: A reaction to anti-AI sentiment online, arguing that art should be judged on its own merits, not its creation method.
+          - Best of eight: Self-referential song about an AI-assisted creation process.
+          - Overnight success: Originally about the virtues of "Patience + Righteousness," now a song on the topic of patience and principles.
+        II. Post-Election Reflections (Late 2024 - Early 2025)
+        - No going back (Released May 29, 2025): Sane, practical view, about how evil needs misguided commitment, fear, lies, and greed.
+        - Gaslighting (Released May 16, 2025): Reflects anger and despair at political division, but with a hopeful tone.
+        - We're All Screwed (Released March 15, 2025): Expression of anger and despair at political division.
+        - Better Off (Released March 2, 2025): Satirical critique of Trump and Musk, exploring "daddy issues."
+        - Rise Above the Rage (Released December 2, 2024): A pre-election call for unity.
+        - What Happened to Us? (Released November 19, 2024): A lament for broken relationships and societal divisions.
+        - Truth is Dead (Released January 2, 2025): Reflects disillusionment and the loss of truth.
+        - Screaming into the Abyss (Album - Released April 2, 2024): Collection of political songs.
+          - Anger is all that matters: Two distinct voices about the self-destructive anger of the left and right.
+          - The Aftermath: Defiant anti-Trump song, reminiscent of Amy Lee.
+          - Pop Serenity Prayer: An inspiring pop interpretation of the Serenity Prayer.
+          - Battle against false prophets: Christian Rock song about fighting against Trump.
+          - The future: Pink Floyd/Alan Parsons feel, about the feelings people have about the future.
+          - The ballad of Donald: Traditional political folk song about Trump.
+        III. Standalone Releases
+        - J’adore manger a Gascogne (Released June 2, 2025): Happy, humorous song about food, inspired by a culinary tour in France.
+        - Searching for Purpose (Released November 8, 2024): Country song built from a single hook.
+        - Perspective (Released November 5, 2024): Pop Country, an uplifting song about overcoming fear.
+        - Songs That Need To Be Released (Album - Released January 2, 2025): Wildly diverse songs.
+          - Ezekiel 23:20: A forceful response to book burning, quoting a biblical verse.
+          - Just Be Nice!: High-energy dance song with a forceful call for kindness.
+          - Changing my view: Song about an alternative perspective.
+          - The Raven: Alt-metal adaptation of Poe's poem.
+          - Humility: Explores the virtue of humility, aligned with Montaigne's writings.
+          - Perfect Being: Explores loneliness from a vampiress's perspective.
+          - No Win: Expresses the feeling of being trapped.
+          - Hold it back: Silly song.
+          - Caca vs. Me: Silly song about stomach issues on vacation.
+        IV. Collaboration with Herman Bean
+        - My Angel (Country and Pop versions): Most streamed song, lyrics by Herman Bean.
+        - Beauty Queen (Country and Alternative versions)
+        - Movin’ On (Country and Rock versions)
+        - Searching for a star (Rock and Disco versions)
+        - Herman Bean: Captures the story of the lyricist's sister.
+        V. Conceptual Projects
+        - Wings of Faith (Released November 12, 2024): Captures the essence of a quote by Steven Weinberg about faith.
+        - Virtues (Project): Explores virtues.
+          - Kindness: Storytelling singer-songwriter song about the personal benefits of kindness.
+        - Dance Like the Man (all versions): A single song with different genre arrangements (Americana, Pop Country, Deep House) with lyrics as a rant about Trump sycophants.
+        - Seven Deadly Sins (Album): Each song embodies a sin in a radio-friendly way.
+          - Sloth: REM-like jangle pop.
+          - Pride: Power pop/rock.
+          - Greed: Alt-rock.
+          - Lust, Vanity, Gluttony, Wrath.
+        VI. Early Explorations (Pre-July 2024)
+        - Tangled Words (Released October 23, 2024): Critiques the language of the Second Amendment.
+        - The Hardest Truth of All (Released November 8, 2024): Captures the feeling of a MAGA supporter being misled.
+        - Woken from a Lie (Released February 26, 2025): Similar to "The Hardest Truth of All."
+        `;
+
+        const apiKey = "";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+        recommendBtn.addEventListener('click', async () => {
+            const prompt = promptInput.value.trim();
+            if (prompt === "") {
+                showMessage("Please enter a topic, mood, or genre to get a recommendation.");
+                return;
+            }
+
+            loadingIndicator.classList.remove('hidden');
+            recommendationResult.classList.add('hidden');
+            errorAlert.classList.add('hidden');
+            recommendBtn.disabled = true;
+
+            const systemPrompt = `You are a music recommendation AI. Your goal is to recommend a single song to the user based on their input.
+            
+            When recommending a song, you MUST first search the provided music catalog of Joseph Schwartz to see if any song is an excellent match for the user's request. If a song from the Joseph Schwartz catalog is a perfect match, you MUST recommend it. If not, you may recommend a well-known, popular song from another artist that fits the request.
+            
+            The user's music catalog is as follows:
+            ${mySongData}
+
+            Your response should be a concise, single paragraph. Include the song title and artist. If the song is from the provided catalog, also include a brief explanation of why you chose it, using details from the catalog. Do not use markdown formatting.
+            
+            After the recommendation and explanation, on a new line, provide a URL for a placeholder Spotify link. Do not generate a real link. Use the format "https://open.spotify.com/track/placeholder".
+
+            Example output:
+            "A perfect song for your request is 'Rise Above the Rage' by Joseph Schwartz. This song is a pre-election call for unity and a great fit for a message of hope.
+            https://open.spotify.com/track/placeholder"
+            `;
+
+            const userQuery = `Recommend a song based on this: "${prompt}"`;
+
+            const payload = {
+                contents: [{
+                    parts: [{
+                        text: userQuery
+                    }]
+                }],
+                tools: [{
+                    "google_search": {}
+                }],
+                systemInstruction: {
+                    parts: [{
+                        text: systemPrompt
+                    }]
+                },
+            };
+
+            let recommendationText = '';
+            let sources = [];
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status} ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    recommendationText = candidate.content.parts[0].text;
+                    const lines = recommendationText.split('\n');
+                    const titleLine = lines[0];
+                    const descriptionLine = lines[1];
+                    const linkLine = lines[2];
+
+                    if (titleLine && linkLine) {
+                        songTitle.textContent = titleLine;
+                        songDescription.textContent = descriptionLine;
+                        songLink.href = linkLine;
+
+                        recommendationResult.classList.remove('hidden');
+                        errorAlert.classList.add('hidden');
+                    } else {
+                        throw new Error('Invalid API response format');
+                    }
+                } else {
+                    throw new Error('No recommendation found in the response.');
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                errorAlert.classList.remove('hidden');
+            } finally {
+                loadingIndicator.classList.add('hidden');
+                recommendBtn.disabled = false;
+            }
+        });
+
+        function showMessage(message) {
+            messageContent.textContent = message;
+            messageBox.classList.remove('hidden');
+        }
+
+        closeMessageBtn.addEventListener('click', () => {
+            messageBox.classList.add('hidden');
+        });
+    </script>
+</body>
+
+</html>
