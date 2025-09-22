@@ -19,6 +19,18 @@
             cursor: not-allowed;
             pointer-events: none;
         }
+
+        #debug-output {
+            background-color: #f0f4f8;
+            border: 1px solid #cce0ff;
+            color: #3b82f6;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 0.5rem;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
     </style>
 </head>
 
@@ -61,6 +73,8 @@
                 class="inline-block mt-4 text-indigo-600 font-medium hover:text-indigo-800 transition-colors">Listen
                 on Spotify</a>
         </div>
+        
+        <div id="debug-output" class="hidden"></div>
 
         <div id="errorAlert" class="hidden mt-6 bg-red-100 p-4 rounded-lg border border-red-300 text-red-700">
             An error occurred while getting the recommendation. Please check the console for details.
@@ -188,6 +202,7 @@
         const messageBox = document.getElementById('messageBox');
         const messageContent = document.getElementById('messageContent');
         const closeMessageBtn = document.getElementById('closeMessageBtn');
+        const debugOutput = document.getElementById('debug-output');
 
         // Your song catalog data in a structured format for easier access.
         const mySongData = [{
@@ -738,6 +753,8 @@
             recommendationResult.classList.add('hidden');
             errorAlert.classList.add('hidden');
             recommendBtn.disabled = true;
+            debugOutput.classList.remove('hidden');
+            debugOutput.textContent = "Beginning recommendation process...\n";
 
             const systemPrompt = `You are a music recommendation AI. Your goal is to recommend a single song to the user based on their input.
 
@@ -753,6 +770,7 @@
             `;
 
             const userQuery = `Recommend a song based on this: "${prompt}"`;
+            debugOutput.textContent += `User Query to AI: "${userQuery}"\n`;
 
             let recommendationText = '';
             let spotifyLink = null;
@@ -786,22 +804,31 @@
 
                 if (candidate && candidate.content?.parts?.[0]?.text) {
                     recommendationText = candidate.content.parts[0].text;
-
-                    const match = recommendationText.match(/'([^']+)' by (.+)\./);
+                    debugOutput.textContent += `AI Raw Response: "${recommendationText}"\n`;
                     
+                    const firstSentenceEndIndex = recommendationText.indexOf('.');
+                    const firstSentence = recommendationText.substring(0, firstSentenceEndIndex + 1);
+                    const description = recommendationText.substring(firstSentenceEndIndex + 1).trim();
+                    
+                    const match = firstSentence.match(/'([^']+)' by ([^.]+)/);
+
                     if (match && match[1] && match[2]) {
                         const songName = match[1];
-                        const artistName = match[2].split(".")[0];
-                        const description = recommendationText.substring(recommendationText.indexOf(match[0]) + match[0].length).trim();
-                        
+                        const artistName = match[2];
+
                         songTitle.textContent = `"${songName}" by ${artistName}`;
                         songDescription.textContent = description;
+                        
+                        debugOutput.textContent += `Parsed Song Name: "${songName}"\n`;
+                        debugOutput.textContent += `Parsed Artist Name: "${artistName}"\n`;
                         
                         const songData = mySongData.find(song => song.title.toLowerCase() === songName.toLowerCase() && song.artist.toLowerCase() === artistName.toLowerCase());
                         
                         if (songData) {
+                             debugOutput.textContent += `Found song in catalog. Artist ID: ${songData.artistId}\n`;
                             spotifyLink = await searchSpotifyById(songData.title, songData.artistId);
                         } else {
+                             debugOutput.textContent += `Song not in catalog. Performing general search.\n`;
                             spotifyLink = await searchSpotify(`${songName} by ${artistName}`);
                         }
                         
@@ -809,10 +836,12 @@
                             songLink.href = spotifyLink;
                             songLink.textContent = "Listen on Spotify";
                             songLink.classList.remove('spotify-link-disabled');
+                            debugOutput.textContent += `Spotify Link Found: ${spotifyLink}\n`;
                         } else {
                             songLink.href = "javascript:void(0)";
                             songLink.textContent = "Link not found on Spotify.";
                             songLink.classList.add('spotify-link-disabled');
+                            debugOutput.textContent += `No Spotify link found.\n`;
                         }
                     } else {
                         throw new Error('Could not parse song title and artist from AI response.');
