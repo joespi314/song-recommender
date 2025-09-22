@@ -685,7 +685,7 @@
             }
 
             try {
-                const searchUrl = `https://api.spotify.com/v1/artists/${artistId}/albums`;
+                const searchUrl = `https://api.spotify.com/v1/search?q=track:${encodeURIComponent(query)}%20artist:${encodeURIComponent(artistId)}&type=track&limit=1`;
                 
                 const response = await fetch(searchUrl, {
                     headers: {
@@ -704,26 +704,13 @@
                 }
 
                 const data = await response.json();
-                const album = data.items.find(a => a.name.toLowerCase() === query.toLowerCase());
+                const track = data.tracks.items[0];
                 
-                if (album) {
-                    return album.external_urls.spotify;
+                if (track) {
+                    return track.external_urls.spotify;
                 } else {
-                    const tracksUrl = `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=US`;
-                    const tracksResponse = await fetch(tracksUrl, {
-                         headers: {
-                            'Authorization': `Bearer ${spotifyAccessToken}`
-                        }
-                    });
-                    const tracksData = await tracksResponse.json();
-                    const track = tracksData.tracks.find(t => t.name.toLowerCase() === query.toLowerCase());
-                    if (track) {
-                        return track.external_urls.spotify;
-                    }
+                    return null;
                 }
-
-                return null;
-
             } catch (error) {
                 console.error("Spotify API Search Error:", error);
                 return null;
