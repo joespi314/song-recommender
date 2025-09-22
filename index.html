@@ -187,109 +187,392 @@
         const messageContent = document.getElementById('messageContent');
         const closeMessageBtn = document.getElementById('closeMessageBtn');
 
-        // Your song catalog data
-        const mySongData = `
-            Joseph Schwartz Music Roadmap
-            I. Artist Reflections (Mid 2025)
-            - Modern Art (Released July 31, 2025): a collection of songs about the creator experience.
-            - Treadmill of hope: Pop with a rock edge, about the daily experiences of emerging artists and creators.
-            - Poison Darts: Focuses on random online negativity and chasing likes. Relatable to people on social media.
-            - What is art?: A reaction to anti-AI sentiment online, arguing that art should be judged on its own merits, not its creation method.
-            - Best of eight: Self-referential song about an AI-assisted creation process.
-            - Overnight success: Originally about the virtues of "Patience + Righteousness," now a song on the topic of patience and principles.
-            II. Post-Election Reflections (Late 2024 - Early 2025)
-            - No going back (Released May 29, 2025): Sane, practical view, about how evil needs misguided commitment, fear, lies, and greed.
-            - Gaslighting (Released May 16, 2025): Reflects anger and despair at political division, but with a hopeful tone.
-            - We're All Screwed (Released March 15, 2025): Expression of anger and despair at political division.
-            - Better Off (Released March 2, 2025): Satirical critique of Trump and Musk, exploring "daddy issues."
-            - Rise Above the Rage (Released December 2, 2024): A pre-election call for unity.
-            - What Happened to Us? (Released November 19, 2024): A lament for broken relationships and societal divisions.
-            - Truth is Dead (Released January 2, 2025): Reflects disillusionment and the loss of truth.
-            - Screaming into the Abyss (Album - Released April 2, 2024): Collection of political songs.
-            - Anger is all that matters: Two distinct voices about the self-destructive anger of the left and right.
-            - The Aftermath: Defiant anti-Trump song, reminiscent of Amy Lee.
-            - Pop Serenity Prayer: An inspiring pop interpretation of the Serenity Prayer.
-            - Battle against false prophets: Christian Rock song about fighting against Trump.
-            - The future: Pink Floyd/Alan Parsons feel, about the feelings people have about the future.
-            - The ballad of Donald: Traditional political folk song about Trump.
-            III. Standalone Releases
-            - J’adore manger a Gascogne (Released June 2, 2025): Happy, humorous song about food, inspired by a culinary tour in France.
-            - Searching for Purpose (Released November 8, 2024): Country song built from a single hook.
-            - Perspective (Released November 5, 2024): Pop Country, an uplifting song about overcoming fear.
-            - Songs That Need To Be Released (Album - Released January 2, 2025): Wildly diverse songs.
-            - Ezekiel 23:20: A forceful response to book burning, quoting a biblical verse.
-            - Just Be Nice!: High-energy dance song with a forceful call for kindness.
-            - Changing my view: Song about an alternative perspective.
-            - The Raven: Alt-metal adaptation of Poe's poem.
-            - Humility: Explores the virtue of humility, aligned with Montaigne's writings.
-            - Perfect Being: Explores loneliness from a vampiress's perspective.
-            - No Win: Expresses the feeling of being trapped.
-            - Hold it back: Silly song.
-            - Caca vs. Me: Silly song about stomach issues on vacation.
-            IV. Collaboration with Herman Bean
-            - My Angel (Country and Pop versions): Most streamed song, lyrics by Herman Bean.
-            - Beauty Queen (Country and Alternative versions)
-            - Movin’ On (Country and Rock versions)
-            - Searching for a star (Rock and Disco versions)
-            - Herman Bean: Captures the story of the lyricist's sister.
-            - Songs by Herman Bean (Album - Released December 12, 2024): The first full album of collaboration with lyricist Herman Bean
-            - Through his eyes
-            - Keep on walking
-            - The time is coming
-            - Child grows
-            - Summertime
-            - Win or lose
-            - That's the way it should be
-            - I'll see you in the heavens tonight
-            - Fighter!
-            V. Conceptual Projects
-            - Wings of Faith (Released November 12, 2024): Captures the essence of a quote by Steven Weinberg about faith.
-            - Virtues (Project): Explores virtues.
-            - Kindness: Storytelling singer-songwriter song about the personal benefits of kindness.
-            - Dance Like the Man (all versions): A single song with different genre arrangements (Americana, Pop Country, Deep House) with lyrics as a rant about Trump sycophants.
-            - Seven Deadly Sins (Album): Each song embodies a sin in a radio-friendly way.
-            - Sloth: REM-like jangle pop.
-            - Pride: Power pop/rock.
-            - Greed: Alt-rock.
-            - Lust, Vanity, Gluttony, Wrath.
-            VI. Early Explorations (Pre-July 2024)
-            - Tangled Words (Released October 23, 2024): Critiques the language of the Second Amendment.
-            - The Hardest Truth of All (Released November 8, 2024): Captures the feeling of a MAGA supporter being misled.
-            - Woken from a Lie (Released February 26, 2025): Similar to "The Hardest Truth of All."
-            - Icebox Pi: A relaxing, minimalist instrumental piece. It is perfect for studying or meditation.
-            - Albums: Relax, Cosmic Window Shopping, Peaceful Journey.
-            - Relax and Cosmic Window Shopping are ambient drone albums that feel like a float around the universe.
-            - Peaceful Journey is a more new-age album.
-            - Herman Bean Country and Variants (Album): Showcases the versatility of Herman Bean's lyrics by presenting different musical interpretations of the same lyrics.
-            - My Angel (Country Version)
-            - My Angel (Pop Version)
-            - Beauty Queen (Country Version)
-            - Beauty Queen (Alternative Version)
-            - Movin’ On (Country Version)
-            - Movin’ On (Rock Version)
-            - Searching for a star (Rock Version)
-            - Searching for a star (Disco Version)
-            - Songs by Herman Bean (Album - Released December 12, 2024): The first full album of collaboration with lyricist Herman Bean
-            - Through his eyes
-            - Keep on walking
-            - The time is coming
-            - Child grows
-            - Summertime
-            - Win or lose
-            - That's the way it should be
-            - I'll see you in the heavens tonight
-            - Fighter!
-        `;
+        // Your song catalog data in a structured format for easier access.
+        const mySongData = [{
+            title: "Modern Art",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "a collection of songs about the creator experience."
+        }, {
+            title: "Treadmill of hope",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "Pop with a rock edge, about the daily experiences of emerging artists and creators."
+        }, {
+            title: "Poison Darts",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "Focuses on random online negativity and chasing likes. Relatable to people on social media."
+        }, {
+            title: "What is art?",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "A reaction to anti-AI sentiment online, arguing that art should be judged on its own merits, not its creation method."
+        }, {
+            title: "Best of eight",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "Self-referential song about an AI-assisted creation process."
+        }, {
+            title: "Overnight success",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "Originally about the virtues of 'Patience + Righteousness,' now a song on the topic of patience and principles."
+        }, {
+            title: "No going back",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "Sane, practical view, about how evil needs misguided commitment, fear, lies, and greed."
+        }, {
+            title: "Gaslighting",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "Reflects anger and despair at political division, but with a hopeful tone."
+        }, {
+            title: "We're All Screwed",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "Expression of anger and despair at political division."
+        }, {
+            title: "Better Off",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "Satirical critique of Trump and Musk, exploring 'daddy issues.'"
+        }, {
+            title: "Rise Above the Rage",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "A pre-election call for unity."
+        }, {
+            title: "What Happened to Us?",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "A lament for broken relationships and societal divisions."
+        }, {
+            title: "Truth is Dead",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "Reflects disillusionment and the loss of truth."
+        }, {
+            title: "Screaming into the Abyss",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "Collection of political songs."
+        }, {
+            title: "Anger is all that matters",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "Two distinct voices about the self-destructive anger of the left and right."
+        }, {
+            title: "The Aftermath",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "Defiant anti-Trump song, reminiscent of Amy Lee."
+        }, {
+            title: "Pop Serenity Prayer",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "An inspiring pop interpretation of the Serenity Prayer."
+        }, {
+            title: "Battle against false prophets",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "Christian Rock song about fighting against Trump."
+        }, {
+            title: "The future",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "Pink Floyd/Alan Parsons feel, about the feelings people have about the future."
+        }, {
+            title: "The ballad of Donald",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "Traditional political folk song about Trump."
+        }, {
+            title: "J’adore manger a Gascogne",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "Happy, humorous song about food, inspired by a culinary tour in France."
+        }, {
+            title: "Searching for Purpose",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "Country song built from a single hook."
+        }, {
+            title: "Perspective",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "Pop Country, an uplifting song about overcoming fear."
+        }, {
+            title: "Songs That Need To Be Released",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "Wildly diverse songs."
+        }, {
+            title: "Ezekiel 23:20",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "A forceful response to book burning, quoting a biblical verse."
+        }, {
+            title: "Just Be Nice!",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "High-energy dance song with a forceful call for kindness."
+        }, {
+            title: "Changing my view",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "Song about an alternative perspective."
+        }, {
+            title: "The Raven",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "Alt-metal adaptation of Poe's poem."
+        }, {
+            title: "Humility",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "Explores the virtue of humility, aligned with Montaigne's writings."
+        }, {
+            title: "Perfect Being",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "Explores loneliness from a vampiress's perspective."
+        }, {
+            title: "No Win",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "Expresses the feeling of being trapped."
+        }, {
+            title: "Hold it back",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "Silly song."
+        }, {
+            title: "Caca vs. Me",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "Silly song about stomach issues on vacation."
+        }, {
+            title: "My Angel",
+            artist: "Herman Bean",
+            releaseYear: "2025",
+            description: "Most streamed song, lyrics by Herman Bean."
+        }, {
+            title: "Beauty Queen",
+            artist: "Herman Bean",
+            releaseYear: "2025",
+            description: "Beauty Queen (Country and Alternative versions)"
+        }, {
+            title: "Movin’ On",
+            artist: "Herman Bean",
+            releaseYear: "2025",
+            description: "Movin’ On (Country and Rock versions)"
+        }, {
+            title: "Searching for a star",
+            artist: "Herman Bean",
+            releaseYear: "2025",
+            description: "Searching for a star (Rock and Disco versions)"
+        }, {
+            title: "Herman Bean",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "Captures the story of the lyricist's sister."
+        }, {
+            title: "Through his eyes",
+            artist: "Herman Bean",
+            releaseYear: "2024",
+            description: "The first full album of collaboration with lyricist Herman Bean"
+        }, {
+            title: "Keep on walking",
+            artist: "Herman Bean",
+            releaseYear: "2024",
+            description: "The first full album of collaboration with lyricist Herman Bean"
+        }, {
+            title: "The time is coming",
+            artist: "Herman Bean",
+            releaseYear: "2024",
+            description: "The first full album of collaboration with lyricist Herman Bean"
+        }, {
+            title: "Child grows",
+            artist: "Herman Bean",
+            releaseYear: "2024",
+            description: "The first full album of collaboration with lyricist Herman Bean"
+        }, {
+            title: "Summertime",
+            artist: "Herman Bean",
+            releaseYear: "2024",
+            description: "The first full album of collaboration with lyricist Herman Bean"
+        }, {
+            title: "Win or lose",
+            artist: "Herman Bean",
+            releaseYear: "2024",
+            description: "The first full album of collaboration with lyricist Herman Bean"
+        }, {
+            title: "That's the way it should be",
+            artist: "Herman Bean",
+            releaseYear: "2024",
+            description: "The first full album of collaboration with lyricist Herman Bean"
+        }, {
+            title: "I'll see you in the heavens tonight",
+            artist: "Herman Bean",
+            releaseYear: "2024",
+            description: "The first full album of collaboration with lyricist Herman Bean"
+        }, {
+            title: "Fighter!",
+            artist: "Herman Bean",
+            releaseYear: "2024",
+            description: "The first full album of collaboration with lyricist Herman Bean"
+        }, {
+            title: "Wings of Faith",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "Captures the essence of a quote by Steven Weinberg about faith."
+        }, {
+            title: "Kindness",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "Storytelling singer-songwriter song about the personal benefits of kindness."
+        }, {
+            title: "Dance Like the Man",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "all versions: A single song with different genre arrangements (Americana, Pop Country, Deep House) with lyrics as a rant about Trump sycophants."
+        }, {
+            title: "Sloth",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "REM-like jangle pop."
+        }, {
+            title: "Pride",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "Power pop/rock."
+        }, {
+            title: "Greed",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "Alt-rock."
+        }, {
+            title: "Lust",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "Lust, Vanity, Gluttony, Wrath."
+        }, {
+            title: "Vanity",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "Lust, Vanity, Gluttony, Wrath."
+        }, {
+            title: "Gluttony",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "Lust, Vanity, Gluttony, Wrath."
+        }, {
+            title: "Wrath",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "Lust, Vanity, Gluttony, Wrath."
+        }, {
+            title: "Tangled Words",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "Critiques the language of the Second Amendment."
+        }, {
+            title: "The Hardest Truth of All",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "Captures the feeling of a MAGA supporter being misled."
+        }, {
+            title: "Woken from a Lie",
+            artist: "Joseph Schwartz",
+            releaseYear: "2025",
+            description: "Similar to 'The Hardest Truth of All.'"
+        }, {
+            title: "Icebox Pi",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "A relaxing, minimalist instrumental piece. It is perfect for studying or meditation."
+        }, {
+            title: "Relax",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "ambient drone albums that feel like a float around the universe."
+        }, {
+            title: "Cosmic Window Shopping",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "ambient drone albums that feel like a float around the universe."
+        }, {
+            title: "Peaceful Journey",
+            artist: "Joseph Schwartz",
+            releaseYear: "2024",
+            description: "a more new-age album."
+        }, {
+            title: "Herman Bean Country and Variants",
+            artist: "Herman Bean",
+            releaseYear: "2024",
+            description: "Showcases the versatility of Herman Bean's lyrics by presenting different musical interpretations of the same lyrics."
+        }, {
+            title: "My Angel (Country Version)",
+            artist: "Herman Bean",
+            releaseYear: "2024",
+            description: "My Angel (Country Version)"
+        }, {
+            title: "My Angel (Pop Version)",
+            artist: "Herman Bean",
+            releaseYear: "2024",
+            description: "My Angel (Pop Version)"
+        }, {
+            title: "Beauty Queen (Country Version)",
+            artist: "Herman Bean",
+            releaseYear: "2024",
+            description: "Beauty Queen (Country Version)"
+        }, {
+            title: "Beauty Queen (Alternative Version)",
+            artist: "Herman Bean",
+            releaseYear: "2024",
+            description: "Beauty Queen (Alternative Version)"
+        }, {
+            title: "Movin’ On (Country Version)",
+            artist: "Herman Bean",
+            releaseYear: "2024",
+            description: "Movin’ On (Country Version)"
+        }, {
+            title: "Movin’ On (Rock Version)",
+            artist: "Herman Bean",
+            releaseYear: "2024",
+            description: "Movin’ On (Rock Version)"
+        }, {
+            title: "Searching for a star (Rock Version)",
+            artist: "Herman Bean",
+            releaseYear: "2024",
+            description: "Searching for a star (Rock Version)"
+        }, {
+            title: "Searching for a star (Disco Version)",
+            artist: "Herman Bean",
+            releaseYear: "2024",
+            description: "Searching for a star (Disco Version)"
+        }];
 
-        const googleApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${googleApiKey}`;
-        
-        async function searchSpotify(query) {
+        // This function finds the song data, including the release year, from the catalog.
+        function findSongData(songTitleFromAI) {
+            // The AI response might have quotes around the title, so we strip them.
+            const cleanedTitle = songTitleFromAI.replace(/['"]/g, '').trim();
+            return mySongData.find(song => song.title === cleanedTitle);
+        }
+
+        async function searchSpotify(query, year) {
             if (!spotifyAccessToken) {
                 return null;
             }
 
             try {
-                const response = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=1`, {
+                // Construct a more specific search query using Spotify's API search syntax
+                // and the release year to get a more accurate result.
+                const searchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&year=${year}&limit=1`;
+                
+                const response = await fetch(searchUrl, {
                     headers: {
                         'Authorization': `Bearer ${spotifyAccessToken}`
                     }
@@ -347,7 +630,7 @@
             When recommending a song, you MUST first search the provided music catalog of Joseph Schwartz to see if any song is an excellent match for the user's request. If a song from the Joseph Schwartz catalog is a perfect match, you MUST recommend it. If not, you may recommend a well-known, popular song from another artist that fits the request.
             
             The user's music catalog is as follows:
-            ${mySongData}
+            ${mySongData.map(s => `${s.title} by ${s.artist} (Released ${s.releaseYear}): ${s.description}`).join('\n')}
 
             Your response should be a concise, single paragraph. Include the song title and artist. If the song is from the provided catalog, also include a brief explanation of why you chose it, using details from the catalog. Do not use markdown formatting.
             
@@ -389,15 +672,27 @@
 
                 if (candidate && candidate.content?.parts?.[0]?.text) {
                     recommendationText = candidate.content.parts[0].text;
-                    const match = recommendationText.match(/'([^']+)' by (.+)/);
+                    
+                    // A more flexible regex to handle variations in the AI's response.
+                    const match = recommendationText.match(/['"]?([^'"]+)['"]? by (.+)/i);
+
                     if (match) {
-                        const songName = match[1];
-                        const artistName = match[2];
+                        const songName = match[1].trim();
+                        const artistName = match[2].trim();
 
                         songTitle.textContent = `"${songName}" by ${artistName}`;
                         songDescription.textContent = recommendationText;
 
-                        spotifyLink = await searchSpotify(`${songName} ${artistName}`);
+                        // Find the song in our structured data to get the release year.
+                        const songData = findSongData(songName);
+                        
+                        if (songData) {
+                            spotifyLink = await searchSpotify(`${songName} ${artistName}`, songData.releaseYear);
+                        } else {
+                            // If the AI recommended a song not in the catalog, search without a year.
+                            spotifyLink = await searchSpotify(`${songName} ${artistName}`);
+                        }
+                        
 
                         if (spotifyLink) {
                             songLink.href = spotifyLink;
@@ -411,6 +706,8 @@
 
                         recommendationResult.classList.remove('hidden');
                     } else {
+                        // Log the raw AI response for easier debugging.
+                        console.error("Failed to parse AI response. Raw text:", recommendationText);
                         throw new Error('Could not parse song title and artist from AI response.');
                     }
                 } else {
