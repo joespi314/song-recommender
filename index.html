@@ -558,9 +558,17 @@
         }];
 
         // This function finds the song data, including the release year, from the catalog.
-        function findSongData(songTitleFromAI) {
-            // The AI response might have quotes around the title, so we strip them.
+        function findSongData(songTitleFromAI, artistFromAI) {
             const cleanedTitle = songTitleFromAI.replace(/['"]/g, '').trim();
+            const cleanedArtist = artistFromAI.replace(/['"]/g, '').trim();
+            
+            // First, try to find a perfect match including the artist name
+            const perfectMatch = mySongData.find(song => song.title === cleanedTitle && song.artist === cleanedArtist);
+            if (perfectMatch) {
+                return perfectMatch;
+            }
+            
+            // If no perfect match, just try matching the title (for flexibility)
             return mySongData.find(song => song.title === cleanedTitle);
         }
 
@@ -629,12 +637,12 @@
 
             const systemPrompt = `You are a music recommendation AI. Your goal is to recommend a single song to the user based on their input.
             
-            When recommending a song, you MUST first search the provided music catalog of Joseph Schwartz to see if any song is an excellent match for the user's request. If a song from the Joseph Schwartz catalog is a perfect match, you MUST recommend it. If not, you may recommend a well-known, popular song from another artist that fits the request.
-            
-            The user's music catalog is as follows:
+            Based on the user's request, find the most appropriate song from the following catalog. If no song from the catalog is an excellent match, you may recommend a well-known, popular song from another artist that fits the request.
+
+            The music catalog is as follows:
             ${mySongData.map(s => `${s.title} by ${s.artist} (Released ${s.releaseYear}): ${s.description}`).join('\n')}
 
-            Your response should be a concise, single paragraph. Include the song title and artist. If the song is from the provided catalog, also include a brief explanation of why you chose it, using details from the catalog. Do not use markdown formatting.
+            Your response should be a concise, single paragraph. Include the song title and artist. If the song is from the provided catalog, also include a brief explanation of why you chose it. Do not use any markdown formatting.
             
             Example output:
             "A perfect song for your request is 'Rise Above the Rage' by Joseph Schwartz. This song is a pre-election call for unity and a great fit for a message of hope."
@@ -686,16 +694,16 @@
                         songDescription.textContent = recommendationText;
 
                         // Find the song in our structured data to get the release year.
-                        const songData = findSongData(songName);
+                        const songData = findSongData(songName, artistName);
                         
                         if (songData) {
-                            spotifyLink = await searchSpotify(`${songName} ${artistName}`, songData.releaseYear);
+                            // If the song is in the catalog, use the specific artist and year for the search
+                            spotifyLink = await searchSpotify(`${songData.title} by ${songData.artist}`, songData.releaseYear);
                         } else {
-                            // If the AI recommended a song not in the catalog, search without a year.
-                            spotifyLink = await searchSpotify(`${songName} ${artistName}`);
+                            // If the AI recommended a song not in the catalog, search with just name and artist
+                            spotifyLink = await searchSpotify(`${songName} by ${artistName}`);
                         }
                         
-
                         if (spotifyLink) {
                             songLink.href = spotifyLink;
                             songLink.textContent = "Listen on Spotify";
