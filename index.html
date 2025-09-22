@@ -183,10 +183,10 @@
 
         const googleApiKey = "AIzaSyBgpL6IRplVSW_mummYo_yQ-G2CKeAliUM";
         const googleApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${googleApiKey}`;
-
+        
         // Spotify API Credentials
         const spotifyClientId = '5f4a9b9322b44626fcb7b5bba3a40c660';
-        const spotifyRedirectUri = 'https://joesp314.github.io/song-recommender/index.html';
+        const spotifyRedirectUri = 'https://joesp314.github.io/song-recommender/'; 
         let spotifyAccessToken = null;
 
         // --- AUTHENTICATION FLOW ---
@@ -229,9 +229,16 @@
                     }
                 });
 
-                if (!response.ok) {
-                    console.error(`Spotify API error: ${response.status} ${response.statusText}`);
+                if (response.status === 401) {
+                    // Token expired, re-authenticate
+                    spotifyAccessToken = null;
+                    showMessage("Your Spotify session has expired. Please log in again.");
+                    authenticateWithSpotify();
                     return null;
+                }
+
+                if (!response.ok) {
+                    throw new Error(`Spotify API error: ${response.status} ${response.statusText}`);
                 }
 
                 const data = await response.json();
@@ -280,8 +287,15 @@
             let spotifyLink = null;
 
             if (!spotifyAccessToken) {
-                showMessage("To get a working Spotify link, please log in.");
-                authenticateWithSpotify();
+                messageContent.textContent = "To get a working Spotify link, please log in.";
+                messageBox.classList.remove('hidden');
+
+                // Wait for the user to click "OK" before authenticating
+                closeMessageBtn.onclick = () => {
+                    messageBox.classList.add('hidden');
+                    authenticateWithSpotify();
+                };
+
                 return;
             }
 
