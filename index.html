@@ -685,7 +685,7 @@
             }
 
             try {
-                const searchUrl = `https://api.spotify.com/v1/search?q=track:${encodeURIComponent(query)}%20artist:${encodeURIComponent(artistId)}&type=track&limit=1`;
+                const searchUrl = `https://api.spotify.com/v1/artists/${artistId}/albums`;
                 
                 const response = await fetch(searchUrl, {
                     headers: {
@@ -704,13 +704,26 @@
                 }
 
                 const data = await response.json();
-                const track = data.tracks.items[0];
+                const album = data.items.find(a => a.name.toLowerCase() === query.toLowerCase());
                 
-                if (track) {
-                    return track.external_urls.spotify;
+                if (album) {
+                    return album.external_urls.spotify;
                 } else {
-                    return null;
+                    const tracksUrl = `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=US`;
+                    const tracksResponse = await fetch(tracksUrl, {
+                         headers: {
+                            'Authorization': `Bearer ${spotifyAccessToken}`
+                        }
+                    });
+                    const tracksData = await tracksResponse.json();
+                    const track = tracksData.tracks.find(t => t.name.toLowerCase() === query.toLowerCase());
+                    if (track) {
+                        return track.external_urls.spotify;
+                    }
                 }
+
+                return null;
+
             } catch (error) {
                 console.error("Spotify API Search Error:", error);
                 return null;
@@ -799,30 +812,10 @@
                     }
                     
                     // Separate the descriptive text from the song name and artist part
-                    const firstSentenceEnd = recommendationText.indexOf('. ') + 1;
-                    const finalDescription = recommendationText.substring(firstSentenceEnd).trim();
-                    const perfectMatchIntro = "A perfect song for your request is ";
-                    const hasIntro = recommendationText.startsWith(perfectMatchIntro);
+                    const finalDescription = recommendationText.replace(/'([^']+)'\s+by\s+([^.]+)\./, "").trim();
                     
-                    if (hasIntro) {
-                        const introEnd = recommendationText.indexOf(perfectMatchIntro) + perfectMatchIntro.length;
-                        const mainPart = recommendationText.substring(introEnd);
-                        const firstPeriod = mainPart.indexOf('.');
-                        const firstSentence = firstPeriod !== -1 ? mainPart.substring(0, firstPeriod) : mainPart;
-                        songTitle.textContent = firstSentence.trim().replace(/^['"]|['"]$/g, '');
-                        songDescription.textContent = mainPart.substring(firstPeriod + 1).trim();
-
-                        const titleMatch = firstSentence.match(/'([^']+)'/);
-                        const artistMatch = firstSentence.match(/by\s(.+)/);
-                        if (titleMatch && artistMatch) {
-                            songName = titleMatch[1];
-                            artistName = artistMatch[1];
-                        }
-
-                    } else {
-                        songTitle.textContent = `"${songName}" by ${artistName}`;
-                        songDescription.textContent = finalDescription;
-                    }
+                    songTitle.textContent = `"${songName}" by ${artistName}`;
+                    songDescription.textContent = finalDescription;
                     
                     const songData = findSongData(songName, artistName);
                     
