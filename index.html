@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Song Recommender</title>
+    <title>Song Recommender</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
@@ -26,7 +26,7 @@
 
     <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-2xl">
         <div class="text-center mb-6">
-            <h1 class="text-3xl font-bold text-gray-800">AI Song Recommender</h1>
+            <h1 class="text-3xl font-bold text-gray-800">Song Recommender</h1>
             <p class="text-gray-600 mt-2">Find the perfect song for any mood, topic, or genre.</p>
         </div>
 
@@ -580,8 +580,11 @@
             try {
                 // Construct a more specific search query using Spotify's API search syntax
                 // and the release year to get a more accurate result.
-                const searchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&year=${year}&limit=1`;
-                
+                let searchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=1`;
+                if (year) {
+                    searchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&year=${year}&limit=1`;
+                }
+
                 const response = await fetch(searchUrl, {
                     headers: {
                         'Authorization': `Bearer ${spotifyAccessToken}`
@@ -637,7 +640,7 @@
 
             const systemPrompt = `You are a music recommendation AI. Your goal is to recommend a single song to the user based on their input.
             
-            Based on the user's request, find the most appropriate song from the following catalog. If no song from the catalog is an excellent match, you may recommend a well-known, popular song from another artist that fits the request.
+            Based on the user's request, find the most appropriate song from the following catalog. If a song from this catalog is an excellent match, recommend it. If not, recommend a well-known, popular song from another artist that fits the request.
 
             The music catalog is as follows:
             ${mySongData.map(s => `${s.title} by ${s.artist} (Released ${s.releaseYear}): ${s.description}`).join('\n')}
@@ -683,43 +686,52 @@
                 if (candidate && candidate.content?.parts?.[0]?.text) {
                     recommendationText = candidate.content.parts[0].text;
                     
-                    // A more flexible regex to handle variations in the AI's response.
-                    const match = recommendationText.match(/['"]?([^'"]+)['"]? by (.+)/i);
-
-                    if (match) {
-                        const songName = match[1].trim();
-                        const artistName = match[2].trim();
-
-                        songTitle.textContent = `"${songName}" by ${artistName}`;
-                        songDescription.textContent = recommendationText;
-
-                        // Find the song in our structured data to get the release year.
-                        const songData = findSongData(songName, artistName);
-                        
-                        if (songData) {
-                            // If the song is in the catalog, use the specific artist and year for the search
-                            spotifyLink = await searchSpotify(`${songData.title} by ${songData.artist}`, songData.releaseYear);
-                        } else {
-                            // If the AI recommended a song not in the catalog, search with just name and artist
-                            spotifyLink = await searchSpotify(`${songName} by ${artistName}`);
-                        }
-                        
-                        if (spotifyLink) {
-                            songLink.href = spotifyLink;
-                            songLink.textContent = "Listen on Spotify";
-                            songLink.classList.remove('spotify-link-disabled');
-                        } else {
-                            songLink.href = "javascript:void(0)";
-                            songLink.textContent = "Link not found on Spotify.";
-                            songLink.classList.add('spotify-link-disabled');
-                        }
-
-                        recommendationResult.classList.remove('hidden');
+                    // A more flexible approach to find the song title and artist.
+                    const byIndex = recommendationText.indexOf(' by ');
+                    let songName = '';
+                    let artistName = '';
+                    if (byIndex !== -1) {
+                        const titlePart = recommendationText.substring(0, byIndex).trim();
+                        artistName = recommendationText.substring(byIndex + 4).trim();
+                        // Strip leading/trailing quotes from the title
+                        songName = titlePart.replace(/^['"]|['"]$/g, '');
                     } else {
-                        // Log the raw AI response for easier debugging.
-                        console.error("Failed to parse AI response. Raw text:", recommendationText);
                         throw new Error('Could not parse song title and artist from AI response.');
                     }
+                    
+                    // Separate the descriptive text from the song name and artist part
+                    const descriptionPart = recommendationText.substring(byIndex + 4 + artistName.length).trim();
+                    
+                    // The first part of the description might be a full sentence like "A perfect song for..."
+                    // We only want to display the remaining part.
+                    const firstSentenceEnd = descriptionPart.indexOf('. ');
+                    const finalDescription = (firstSentenceEnd !== -1) ? descriptionPart.substring(firstSentenceEnd + 2) : descriptionPart;
+
+                    songTitle.textContent = `"${songName}" by ${artistName}`;
+                    songDescription.textContent = finalDescription;
+
+                    // Find the song in our structured data to get the release year.
+                    const songData = findSongData(songName, artistName);
+                    
+                    if (songData) {
+                        // If the song is in the catalog, use the specific artist and year for the search
+                        spotifyLink = await searchSpotify(`${songData.title} by ${songData.artist}`, songData.releaseYear);
+                    } else {
+                        // If the AI recommended a song not in the catalog, search with just name and artist
+                        spotifyLink = await searchSpotify(`${songName} by ${artistName}`);
+                    }
+                    
+                    if (spotifyLink) {
+                        songLink.href = spotifyLink;
+                        songLink.textContent = "Listen on Spotify";
+                        songLink.classList.remove('spotify-link-disabled');
+                    } else {
+                        songLink.href = "javascript:void(0)";
+                        songLink.textContent = "Link not found on Spotify.";
+                        songLink.classList.add('spotify-link-disabled');
+                    }
+
+                    recommendationResult.classList.remove('hidden');
                 } else {
                     throw new Error('No recommendation found in the response.');
                 }
