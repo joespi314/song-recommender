@@ -64,7 +64,6 @@
                 Processing your request...
             </div>
         </div>
-
         <div id="recommendationResult" class="hidden mt-6 bg-gray-50 p-6 rounded-lg border border-gray-200">
             <h2 class="text-xl font-semibold text-gray-800 mb-2">Recommended Song:</h2>
             <div id="songTitle" class="text-lg font-bold text-indigo-600"></div>
@@ -73,13 +72,19 @@
                 class="inline-block mt-4 text-indigo-600 font-medium hover:text-indigo-800 transition-colors">Listen
                 on Spotify</a>
         </div>
-        
+        <div id="previousRecommendations" class="mt-4 hidden">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Previous Recommendations:</h3>
+            <div id="previousList" class="space-y-2"></div>
+        </div>
+        <div id="nextRecommendationBtn" class="hidden text-center mt-4">
+            <button id="getAnotherBtn" class="px-6 py-3 bg-indigo-600 text-white rounded-md font-semibold hover:bg-indigo-700 transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                Get Another Recommendation
+            </button>
+        </div>
         <div id="debug-output" class="hidden"></div>
-
         <div id="errorAlert" class="hidden mt-6 bg-red-100 p-4 rounded-lg border border-red-300 text-red-700">
             An error occurred while getting the recommendation. Please check the console for details.
         </div>
-
         <div id="messageBox" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
             <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm mx-auto text-center">
                 <p id="messageContent" class="text-gray-800 mb-4"></p>
@@ -87,27 +92,19 @@
             </div>
         </div>
     </div>
-
     <script>
-        // --- IMPORTANT: Replace these with your actual values from the Spotify dashboard ---
-        // You MUST use the same Redirect URI in both the code and the Spotify dashboard.
         const spotifyClientId = '5f4eb9322cb444628fce7b5bbe3e40a0';
         const spotifyRedirectUri = 'https://joespi314.github.io/song-recommender';
         const googleApiKey = 'AIzaSyBgpL6IRplVSW_mummYo_yQ-G2CKeAliUM';
         const googleApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${googleApiKey}`;
-
-
-        // Helper functions for PKCE flow
         function generateRandomString(length) {
             let text = '';
             let possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
             for (let i = 0; i < length; i++) {
                 text += possible.charAt(Math.floor(Math.random() * possible.length));
             }
             return text;
         }
-
         async function generateCodeChallenge(codeVerifier) {
             const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(codeVerifier));
             return btoa(String.fromCharCode(...new Uint8Array(digest)))
@@ -115,25 +112,17 @@
                 .replace(/\+/g, '-')
                 .replace(/\//g, '_');
         }
-
-        // --- AUTHENTICATION FLOW ---
         let spotifyAccessToken = null;
-
-        // Handles the PKCE authentication flow
         async function handleSpotifyAuth() {
             const urlParams = new URLSearchParams(window.location.search);
             let code = urlParams.get('code');
-
-            // If we have a code, exchange it for an access token
             if (code) {
                 const codeVerifier = localStorage.getItem('spotify_code_verifier');
                 localStorage.removeItem('spotify_code_verifier');
-
                 if (!codeVerifier) {
                     showMessage("Authentication failed. Please try again.");
                     return;
                 }
-
                 try {
                     const response = await fetch('https://accounts.spotify.com/api/token', {
                         method: 'POST',
@@ -148,12 +137,10 @@
                             code_verifier: codeVerifier,
                         }).toString()
                     });
-
                     if (!response.ok) {
                         const errorData = await response.json();
                         throw new Error(`Token exchange failed: ${JSON.stringify(errorData)}`);
                     }
-
                     const data = await response.json();
                     spotifyAccessToken = data.access_token;
                     localStorage.setItem('spotify_access_token', spotifyAccessToken);
@@ -163,34 +150,24 @@
                     showMessage('Authentication failed. Check your console for details.');
                 }
             } else {
-                // If no code, start the authentication process
                 const codeVerifier = generateRandomString(128);
                 const codeChallenge = await generateCodeChallenge(codeVerifier);
-
                 localStorage.setItem('spotify_code_verifier', codeVerifier);
-
                 const scope = 'user-read-private user-read-email';
                 const authUrl = `https://accounts.spotify.com/authorize?response_type=code&client_id=${spotifyClientId}&scope=${encodeURIComponent(scope)}&redirect_uri=${encodeURIComponent(spotifyRedirectUri)}&code_challenge_method=S256&code_challenge=${codeChallenge}`;
                 window.location.href = authUrl;
             }
         }
-
-        // Check if an access token exists on load
         window.onload = function() {
             spotifyAccessToken = localStorage.getItem('spotify_access_token');
             const urlParams = new URLSearchParams(window.location.search);
             let code = urlParams.get('code');
-            
-            // If we have a code in the URL, finish the auth flow
             if (code) {
                 handleSpotifyAuth();
             } else if (spotifyAccessToken) {
-                // If a token exists in storage, we are already logged in
                 console.log("Spotify token found in local storage.");
             }
         };
-
-        // --- RECOMMENDATION LOGIC ---
         const promptInput = document.getElementById('promptInput');
         const recommendBtn = document.getElementById('recommendBtn');
         const loadingIndicator = document.getElementById('loadingIndicator');
@@ -203,8 +180,11 @@
         const messageContent = document.getElementById('messageContent');
         const closeMessageBtn = document.getElementById('closeMessageBtn');
         const debugOutput = document.getElementById('debug-output');
-
-        // Your song catalog data in a structured format for easier access.
+        const getAnotherBtn = document.getElementById('getAnotherBtn');
+        const nextRecommendationBtn = document.getElementById('nextRecommendationBtn');
+        const previousRecommendations = document.getElementById('previousRecommendations');
+        const previousList = document.getElementById('previousList');
+        let chatHistory = [];
         const mySongData = [{
             title: "Modern Art",
             artist: "Joseph Schwartz",
@@ -639,49 +619,38 @@
             description: "A new-age album."
         }];
 
-        // This function finds the song data, including the release year and artist ID, from the catalog.
+        let previousRecommendationsForPrompt = {};
+        
         function findSongData(songTitleFromAI, artistFromAI) {
             const cleanedTitle = songTitleFromAI.replace(/['"]/g, '').trim();
             const cleanedArtist = artistFromAI.replace(/['"]/g, '').trim();
-            
-            // First, try to find a perfect match including the artist name
             const perfectMatch = mySongData.find(song => song.title.toLowerCase() === cleanedTitle.toLowerCase() && song.artist.toLowerCase() === cleanedArtist.toLowerCase());
             if (perfectMatch) {
                 return perfectMatch;
             }
-            
-            // If no perfect match, just try matching the title (for flexibility)
             return mySongData.find(song => song.title.toLowerCase() === cleanedTitle.toLowerCase());
         }
-
         async function searchSpotify(query) {
             if (!spotifyAccessToken) {
                 return null;
             }
-
             try {
                 const searchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=1`;
-                
                 const response = await fetch(searchUrl, {
                     headers: {
                         'Authorization': `Bearer ${spotifyAccessToken}`
                     }
                 });
-
                 if (response.status === 401) {
-                    // Token expired, clear storage and show message
                     localStorage.removeItem('spotify_access_token');
                     showMessage("Your Spotify session has expired. Please log in again.");
                     return null;
                 }
-
                 if (!response.ok) {
                     throw new Error(`Spotify API error: ${response.status} ${response.statusText}`);
                 }
-
                 const data = await response.json();
                 const track = data.tracks.items[0];
-
                 if (track) {
                     return track.external_urls.spotify;
                 } else {
@@ -692,35 +661,27 @@
                 return null;
             }
         }
-
         async function searchSpotifyById(query, artistId) {
             if (!spotifyAccessToken || !artistId || artistId.startsWith('placeholder')) {
-                // Fallback if artistId is not available or is a placeholder
                 return searchSpotify(query);
             }
-
             try {
                 const searchUrl = `https://api.spotify.com/v1/search?q=track:${encodeURIComponent(query)}%20artist:${encodeURIComponent(artistId)}&type=track&limit=1`;
-                
                 const response = await fetch(searchUrl, {
                     headers: {
                         'Authorization': `Bearer ${spotifyAccessToken}`
                     }
                 });
-
                 if (response.status === 401) {
                     localStorage.removeItem('spotify_access_token');
                     showMessage("Your Spotify session has expired. Please log in again.");
                     return null;
                 }
-
                 if (!response.ok) {
                     throw new Error(`Spotify API error: ${response.status} ${response.statusText}`);
                 }
-
                 const data = await response.json();
                 const track = data.tracks.items[0];
-                
                 if (track) {
                     return track.external_urls.spotify;
                 } else {
@@ -731,15 +692,12 @@
                 return null;
             }
         }
-
-        recommendBtn.addEventListener('click', async () => {
+        async function getRecommendation(isRetry = false) {
             const prompt = promptInput.value.trim();
             if (prompt === "") {
                 showMessage("Please enter a topic, mood, or genre to get a recommendation.");
                 return;
             }
-            
-            // Check if we have an access token, otherwise start the auth flow
             if (!spotifyAccessToken) {
                 showMessage("To get a working Spotify link, you need to log in. Please click OK to continue.");
                 closeMessageBtn.onclick = () => {
@@ -748,33 +706,30 @@
                 };
                 return;
             }
-            
             loadingIndicator.classList.remove('hidden');
             recommendationResult.classList.add('hidden');
             errorAlert.classList.add('hidden');
             recommendBtn.disabled = true;
+            nextRecommendationBtn.classList.add('hidden');
             debugOutput.classList.remove('hidden');
             debugOutput.textContent = "Beginning recommendation process...\n";
-
+            const previousRecs = previousRecommendationsForPrompt[prompt] || [];
+            const excludeTitles = previousRecs.map(r => r.songName);
             const systemPrompt = `You are a music recommendation AI. Your goal is to recommend a single song to the user based on their input.
-
             Prioritize finding a song that is a perfect match from the following catalog. If no song from the catalog is a good fit, you may recommend a well-known, popular song from another artist that fits the request.
-
             The music catalog is as follows:
             ${mySongData.map(s => `${s.title} by ${s.artist} (Released ${s.releaseYear}): ${s.description}`).join('\n')}
-
             Your response should be a concise, single paragraph. Do not mention that you are using a provided catalog. Include the song title and artist. If the song is from the provided catalog, also include a brief explanation of why you chose it. Do not use any markdown formatting.
-
             Example output:
             "A perfect song for your request is 'Rise Above the Rage' by Joseph Schwartz. This song is a pre-election call for unity and a great fit for a message of hope."
             `;
-
             const userQuery = `Recommend a song based on this: "${prompt}"`;
             debugOutput.textContent += `User Query to AI: "${userQuery}"\n`;
-
-            let recommendationText = '';
-            let spotifyLink = null;
-
+            if (isRetry && previousRecs.length > 0) {
+                const excludeSongs = `\n\nPreviously recommended for this prompt: ${previousRecs.map(r => `'${r.songName}'`).join(', ')}. Please recommend a different song.`;
+                userQuery += excludeSongs;
+                debugOutput.textContent += `Excluding songs: ${excludeTitles.join(', ')}\n`;
+            }
             try {
                 const response = await fetch(googleApiUrl, {
                     method: 'POST',
@@ -794,45 +749,35 @@
                         }
                     })
                 });
-
                 if (!response.ok) {
                     throw new Error(`Google API error: ${response.status} ${response.statusText}`);
                 }
-
                 const result = await response.json();
                 const candidate = result.candidates?.[0];
-
                 if (candidate && candidate.content?.parts?.[0]?.text) {
-                    recommendationText = candidate.content.parts[0].text;
+                    let recommendationText = candidate.content.parts[0].text;
                     debugOutput.textContent += `AI Raw Response: "${recommendationText}"\n`;
-                    
-                    const firstSentenceEndIndex = recommendationText.indexOf('.');
-                    const firstSentence = recommendationText.substring(0, firstSentenceEndIndex + 1);
-                    const description = recommendationText.substring(firstSentenceEndIndex + 1).trim();
-                    
-                    const match = firstSentence.match(/'([^']+)' by ([^.]+)/);
-
+                    const match = recommendationText.match(/'([^']+)' by ([^.]+)/);
                     if (match && match[1] && match[2]) {
                         const songName = match[1];
                         const artistName = match[2];
-                        const cleanDescription = description.replace(/^A perfect song for your request is '.*?' by .*?\. /, '').trim();
-
+                        let description = recommendationText;
+                        const firstSentenceEndIndex = recommendationText.indexOf('.');
+                        if (firstSentenceEndIndex !== -1) {
+                            description = recommendationText.substring(firstSentenceEndIndex + 1).trim();
+                        }
                         songTitle.textContent = `"${songName}" by ${artistName}`;
-                        songDescription.textContent = cleanDescription;
-                        
+                        songDescription.textContent = description;
                         debugOutput.textContent += `Parsed Song Name: "${songName}"\n`;
                         debugOutput.textContent += `Parsed Artist Name: "${artistName}"\n`;
-                        
                         const songData = mySongData.find(song => song.title.toLowerCase() === songName.toLowerCase() && song.artist.toLowerCase() === artistName.toLowerCase());
-                        
                         if (songData) {
-                             debugOutput.textContent += `Found song in catalog. Artist ID: ${songData.artistId}\n`;
+                            debugOutput.textContent += `Found song in catalog. Artist ID: ${songData.artistId}\n`;
                             spotifyLink = await searchSpotifyById(songData.title, songData.artistId);
                         } else {
-                             debugOutput.textContent += `Song not in catalog. Performing general search.\n`;
+                            debugOutput.textContent += `Song not in catalog. Performing general search.\n`;
                             spotifyLink = await searchSpotify(`${songName} by ${artistName}`);
                         }
-                        
                         if (spotifyLink) {
                             songLink.href = spotifyLink;
                             songLink.textContent = "Listen on Spotify";
@@ -844,11 +789,21 @@
                             songLink.classList.add('spotify-link-disabled');
                             debugOutput.textContent += `No Spotify link found.\n`;
                         }
+                        if (!previousRecommendationsForPrompt[prompt]) {
+                            previousRecommendationsForPrompt[prompt] = [];
+                        }
+                        previousRecommendationsForPrompt[prompt].unshift({
+                            songName: songName,
+                            artistName: artistName,
+                            description: description,
+                            spotifyLink: spotifyLink
+                        });
+                        displayPreviousRecommendations(prompt);
                     } else {
                         throw new Error('Could not parse song title and artist from AI response.');
                     }
-
                     recommendationResult.classList.remove('hidden');
+                    nextRecommendationBtn.classList.remove('hidden');
                 } else {
                     throw new Error('No recommendation found in the response.');
                 }
@@ -860,24 +815,40 @@
                 loadingIndicator.classList.add('hidden');
                 recommendBtn.disabled = false;
             }
-        });
-
-        // Event listener for the Enter key on the input field
+        }
+        function displayPreviousRecommendations(prompt) {
+            const recs = previousRecommendationsForPrompt[prompt] || [];
+            if (recs.length > 1) {
+                previousRecommendations.classList.remove('hidden');
+                previousList.innerHTML = '';
+                recs.slice(1).forEach(rec => {
+                    const recElement = document.createElement('div');
+                    recElement.className = "bg-gray-100 p-4 rounded-lg";
+                    recElement.innerHTML = `
+                        <div class="text-sm font-bold text-gray-700">"${rec.songName}" by ${rec.artistName}</div>
+                        <div class="text-sm text-gray-500 mt-1">${rec.description}</div>
+                        <a href="${rec.spotifyLink || 'javascript:void(0)'}" target="_blank" class="text-xs text-indigo-400 mt-1 inline-block hover:text-indigo-600 ${!rec.spotifyLink ? 'spotify-link-disabled' : ''}">Listen on Spotify</a>
+                    `;
+                    previousList.appendChild(recElement);
+                });
+            } else {
+                previousRecommendations.classList.add('hidden');
+            }
+        }
+        recommendBtn.addEventListener('click', () => getRecommendation());
+        getAnotherBtn.addEventListener('click', () => getRecommendation(true));
         promptInput.addEventListener('keypress', (event) => {
             if (event.key === 'Enter') {
-                recommendBtn.click();
+                getRecommendation();
             }
         });
-
         function showMessage(message) {
             messageContent.textContent = message;
             messageBox.classList.remove('hidden');
         }
-
         closeMessageBtn.addEventListener('click', () => {
             messageBox.classList.add('hidden');
         });
     </script>
 </body>
-
 </html>
