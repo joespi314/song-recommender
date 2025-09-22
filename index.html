@@ -685,8 +685,7 @@
             }
 
             try {
-                // Search for the track within the specific artist's catalog
-                const searchUrl = `https://api.spotify.com/v1/search?q=track:${encodeURIComponent(query)}&type=track&limit=1&artist=${artistId}`;
+                const searchUrl = `https://api.spotify.com/v1/search?q=track:${encodeURIComponent(query)}%20artist:${encodeURIComponent(artistId)}&type=track&limit=1`;
                 
                 const response = await fetch(searchUrl, {
                     headers: {
@@ -802,17 +801,34 @@
                     // Separate the descriptive text from the song name and artist part
                     const firstSentenceEnd = recommendationText.indexOf('. ') + 1;
                     const finalDescription = recommendationText.substring(firstSentenceEnd).trim();
+                    const perfectMatchIntro = "A perfect song for your request is ";
+                    const hasIntro = recommendationText.startsWith(perfectMatchIntro);
+                    
+                    if (hasIntro) {
+                        const introEnd = recommendationText.indexOf(perfectMatchIntro) + perfectMatchIntro.length;
+                        const mainPart = recommendationText.substring(introEnd);
+                        const firstPeriod = mainPart.indexOf('.');
+                        const firstSentence = firstPeriod !== -1 ? mainPart.substring(0, firstPeriod) : mainPart;
+                        songTitle.textContent = firstSentence.trim().replace(/^['"]|['"]$/g, '');
+                        songDescription.textContent = mainPart.substring(firstPeriod + 1).trim();
 
-                    songTitle.textContent = `"${songName}" by ${artistName}`;
-                    songDescription.textContent = finalDescription;
+                        const titleMatch = firstSentence.match(/'([^']+)'/);
+                        const artistMatch = firstSentence.match(/by\s(.+)/);
+                        if (titleMatch && artistMatch) {
+                            songName = titleMatch[1];
+                            artistName = artistMatch[1];
+                        }
 
+                    } else {
+                        songTitle.textContent = `"${songName}" by ${artistName}`;
+                        songDescription.textContent = finalDescription;
+                    }
+                    
                     const songData = findSongData(songName, artistName);
                     
                     if (songData && songData.artistId) {
-                        // Use the artist ID to search, which is the most reliable method
                         spotifyLink = await searchSpotifyById(songData.title, songData.artistId);
                     } else {
-                        // Fallback to a less-precise search if no artist ID is available
                         spotifyLink = await searchSpotify(`${songName} by ${artistName}`);
                     }
                     
