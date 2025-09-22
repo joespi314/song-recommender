@@ -786,40 +786,36 @@
 
                 if (candidate && candidate.content?.parts?.[0]?.text) {
                     recommendationText = candidate.content.parts[0].text;
+
+                    const match = recommendationText.match(/'([^']+)' by (.+)\./);
                     
-                    const byIndex = recommendationText.indexOf(' by ');
-                    let songName = '';
-                    let artistName = '';
-                    if (byIndex !== -1) {
-                        const titlePart = recommendationText.substring(0, byIndex).trim();
-                        artistName = recommendationText.substring(byIndex + 4).trim();
-                        songName = titlePart.replace(/^['"]|['"]$/g, '');
+                    if (match && match[1] && match[2]) {
+                        const songName = match[1];
+                        const artistName = match[2].split(".")[0];
+                        const description = recommendationText.substring(recommendationText.indexOf(match[0]) + match[0].length).trim();
+                        
+                        songTitle.textContent = `"${songName}" by ${artistName}`;
+                        songDescription.textContent = description;
+                        
+                        const songData = mySongData.find(song => song.title.toLowerCase() === songName.toLowerCase() && song.artist.toLowerCase() === artistName.toLowerCase());
+                        
+                        if (songData) {
+                            spotifyLink = await searchSpotifyById(songData.title, songData.artistId);
+                        } else {
+                            spotifyLink = await searchSpotify(`${songName} by ${artistName}`);
+                        }
+                        
+                        if (spotifyLink) {
+                            songLink.href = spotifyLink;
+                            songLink.textContent = "Listen on Spotify";
+                            songLink.classList.remove('spotify-link-disabled');
+                        } else {
+                            songLink.href = "javascript:void(0)";
+                            songLink.textContent = "Link not found on Spotify.";
+                            songLink.classList.add('spotify-link-disabled');
+                        }
                     } else {
                         throw new Error('Could not parse song title and artist from AI response.');
-                    }
-                    
-                    // Separate the descriptive text from the song name and artist part
-                    const finalDescription = recommendationText.replace(/'([^']+)'\s+by\s+([^.]+)\./, "").trim();
-                    
-                    songTitle.textContent = `"${songName}" by ${artistName}`;
-                    songDescription.textContent = finalDescription;
-                    
-                    const songData = findSongData(songName, artistName);
-                    
-                    if (songData && songData.artistId) {
-                        spotifyLink = await searchSpotifyById(songData.title, songData.artistId);
-                    } else {
-                        spotifyLink = await searchSpotify(`${songName} by ${artistName}`);
-                    }
-                    
-                    if (spotifyLink) {
-                        songLink.href = spotifyLink;
-                        songLink.textContent = "Listen on Spotify";
-                        songLink.classList.remove('spotify-link-disabled');
-                    } else {
-                        songLink.href = "javascript:void(0)";
-                        songLink.textContent = "Link not found on Spotify.";
-                        songLink.classList.add('spotify-link-disabled');
                     }
 
                     recommendationResult.classList.remove('hidden');
