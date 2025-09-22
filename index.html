@@ -815,9 +815,10 @@
                     if (match && match[1] && match[2]) {
                         const songName = match[1];
                         const artistName = match[2];
+                        const cleanDescription = description.replace(/^A perfect song for your request is '.*?' by .*?\. /, '').trim();
 
                         songTitle.textContent = `"${songName}" by ${artistName}`;
-                        songDescription.textContent = description;
+                        songDescription.textContent = cleanDescription;
                         
                         debugOutput.textContent += `Parsed Song Name: "${songName}"\n`;
                         debugOutput.textContent += `Parsed Artist Name: "${artistName}"\n`;
