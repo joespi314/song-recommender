@@ -121,6 +121,7 @@
         let spotifyAccessToken = null;
 
         async function handleSpotifyAuth() {
+            debugOutput.innerHTML += `App started. Checking for Spotify access token...\n`;
             const urlParams = new URLSearchParams(window.location.search);
             let code = urlParams.get('code');
             if (code) {
@@ -180,7 +181,9 @@
             if (code) {
                 handleSpotifyAuth();
             } else if (spotifyAccessToken) {
-                console.log("Spotify token found in local storage.");
+                debugOutput.innerHTML += `App started. Spotify access token found.\n`;
+            } else {
+                debugOutput.innerHTML += `App started. No Spotify access token found. Await user action.\n`;
             }
         };
 
@@ -263,7 +266,8 @@
             const prompt = promptInput.value.trim();
 
             debugOutput.classList.remove('hidden');
-            debugOutput.innerHTML = `Beginning recommendation process...\n`;
+            debugOutput.innerHTML += `User input received: "${prompt}"\n`;
+            debugOutput.innerHTML += `Starting recommendation process...\n`;
 
             if (prompt === "") {
                 showMessage("Please enter a topic, mood, or genre to get a recommendation.");
