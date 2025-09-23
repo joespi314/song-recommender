@@ -258,6 +258,7 @@
         }
         
         async function getRecommendation(excludedTitles = []) {
+            debugOutput.innerHTML += `Button pressed. Starting recommendation...\n`;
             loadingIndicator.classList.remove('hidden');
             recommendationResult.classList.add('hidden');
             errorAlert.classList.add('hidden');
