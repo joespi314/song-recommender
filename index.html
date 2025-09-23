@@ -616,14 +616,29 @@
             artist: "Icebox Pi",
             artistId: "4lwHc4bYmRIJcaTOLqFxBy",
             releaseYear: "2024",
-            description: "A new-age album."
+            description: "A more new-age album."
+        }, {
+            title: "Tangled Words",
+            artist: "Joseph Schwartz",
+            artistId: "1i0YtjdzwndXd3oQqiiLoT",
+            releaseYear: "2024",
+            description: "Critiques the language of the Second Amendment."
+        }, {
+            title: "The Hardest Truth of All",
+            artist: "Joseph Schwartz",
+            artistId: "1i0YtjdzwndXd3oQqiiLoT",
+            releaseYear: "2024",
+            description: "Captures the feeling of a MAGA supporter being misled."
         }];
-
-        const artistIds = {
-            "Joseph Schwartz": "1i0YtjdzwndXd3oQqiiLoT",
-            "Icebox Pi": "4lwHc4bYmRIJcaTOLqFxBy"
-        };
+        function showMessage(message) {
+            messageContent.textContent = message;
+            messageBox.classList.remove('hidden');
+        }
+        closeMessageBtn.addEventListener('click', () => {
+            messageBox.classList.add('hidden');
+        });
         async function searchSpotify(query) {
+            debugOutput.innerHTML += `Spotify search query: "${query}"\n`;
             if (!spotifyAccessToken) {
                 return null;
             }
@@ -634,7 +649,10 @@
                     }
                 });
                 if (response.status === 401) {
+                    spotifyAccessToken = null;
                     localStorage.removeItem('spotify_access_token');
+                    showMessage("Your Spotify session has expired. Please log in again.");
+                    handleSpotifyAuth();
                     return null;
                 }
                 if (!response.ok) {
@@ -643,95 +661,53 @@
                 const data = await response.json();
                 const track = data.tracks.items[0];
                 if (track) {
+                    debugOutput.innerHTML += `Spotify Link Found: ${track.external_urls.spotify}\n`;
                     return track.external_urls.spotify;
                 } else {
+                    debugOutput.innerHTML += `No Spotify link found.\n`;
                     return null;
                 }
             } catch (error) {
                 console.error("Spotify API Search Error:", error);
+                debugOutput.innerHTML += `Spotify API Search Error: ${error.message}\n`;
                 return null;
             }
         }
-        async function searchSpotifyById(songName, artistId) {
-            if (!spotifyAccessToken) {
-                return null;
-            }
-            try {
-                const query = `track:"${songName}" artist:${artistId}`;
-                const response = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=1`, {
-                    headers: {
-                        'Authorization': `Bearer ${spotifyAccessToken}`
-                    }
-                });
-                if (response.status === 401) {
-                    localStorage.removeItem('spotify_access_token');
-                    return null;
-                }
-                if (!response.ok) {
-                    throw new Error(`Spotify API error: ${response.status} ${response.statusText}`);
-                }
-                const data = await response.json();
-                const track = data.tracks.items[0];
-                if (track && track.artists.some(artist => artist.id === artistId)) {
-                    return track.external_urls.spotify;
-                } else {
-                    return null;
-                }
-            } catch (error) {
-                console.error("Spotify API Search Error:", error);
-                return null;
-            }
-        }
-        function showMessage(message) {
-            messageContent.textContent = message;
-            messageBox.classList.remove('hidden');
-        }
-        let currentPrompt = '';
-        let currentRecommendations = [];
-        recommendBtn.addEventListener('click', async () => {
-            currentPrompt = promptInput.value.trim();
-            if (currentPrompt === "") {
-                showMessage("Please enter a topic, mood, or genre to get a recommendation.");
-                return;
-            }
-            currentRecommendations = [];
-            previousList.innerHTML = '';
-            await getRecommendation();
-            previousRecommendations.classList.remove('hidden');
-        });
-        getAnotherBtn.addEventListener('click', async () => {
-            await getRecommendation(true);
-        });
-        async function getRecommendation(isAnother = false) {
+        async function getRecommendation(excludedTitles = []) {
             loadingIndicator.classList.remove('hidden');
             recommendationResult.classList.add('hidden');
             errorAlert.classList.add('hidden');
-            recommendBtn.disabled = true;
             nextRecommendationBtn.classList.add('hidden');
-            if (!spotifyAccessToken) {
-                showMessage("To get a working Spotify link, please log in.");
-                closeMessageBtn.onclick = () => {
-                    messageBox.classList.add('hidden');
-                    handleSpotifyAuth();
-                };
+            const prompt = promptInput.value.trim();
+            debugOutput.classList.remove('hidden');
+            debugOutput.innerHTML = `Beginning recommendation process...\n`;
+            if (prompt === "") {
+                showMessage("Please enter a topic, mood, or genre to get a recommendation.");
+                loadingIndicator.classList.add('hidden');
                 return;
             }
+            if (!spotifyAccessToken) {
+                showMessage("To get a working Spotify link, please log in.");
+                loadingIndicator.classList.add('hidden');
+                handleSpotifyAuth();
+                return;
+            }
+            const mySongDataString = JSON.stringify(mySongData);
             const systemPrompt = `You are a music recommendation AI. Your goal is to recommend a single song to the user based on their input.
             
-            When recommending a song, you must first search the provided music catalog to see if any song is an excellent match for the user's request. If a song from the provided catalog is a perfect match, you must recommend it. If not, you may recommend a well-known, popular song from another artist that fits the request.
-            
-            The user's music catalog is as follows:
-            ${JSON.stringify(mySongData, null, 2)}
-            
-            Your response should be a single, concise paragraph. Start with "A perfect song for your request is '[Song Title]' by [Artist Name].". The rest of the paragraph should briefly explain why you chose the song. If the song is from the provided catalog, use details from the catalog. Do not use markdown formatting.
-            
+            Here is a list of songs and albums you can recommend. You should prioritize songs from this list if they are a perfect match for the user's request. If no song from this list is a good fit, you may recommend a well-known, popular song from another artist that fits the request.
+
+            Song Catalog:
+            ${mySongDataString}
+
+            Your response should be a concise, single paragraph. Include the song title and artist. If the song is from the provided catalog, also include a brief explanation of why you chose it, using details from the catalog. Do not use markdown formatting.
+
             Example output:
-            "A perfect song for your request is 'Rise Above the Rage' by Joseph Schwartz. This song is a pre-election call for unity and a great fit for a message of hope."`;
-            let userQuery = `Recommend a song based on this: "${currentPrompt}"`;
-            if (isAnother && currentRecommendations.length > 0) {
-                const excludedSongs = currentRecommendations.map(rec => rec.title);
-                userQuery += ` Do not recommend any of the following songs: ${excludedSongs.join(', ')}.`;
-            }
+            "A perfect song for your request is 'Rise Above the Rage' by Joseph Schwartz. This song is a pre-election call for unity and a great fit for a message of hope."
+            `;
+            const userQuery = `Recommend a song based on this: "${prompt}"`;
+            let recommendationText = '';
+            let spotifyLink = null;
             try {
                 const response = await fetch(googleApiUrl, {
                     method: 'POST',
@@ -755,62 +731,44 @@
                     throw new Error(`Google API error: ${response.status} ${response.statusText}`);
                 }
                 const result = await response.json();
-                const rawResponse = result.candidates?.[0]?.content?.parts?.[0]?.text || 'No recommendation found.';
-                const debugInfo = `Beginning recommendation process...
-User Query to AI: "${currentPrompt}"
-AI Raw Response: "${rawResponse}"`;
-                debugOutput.textContent = debugInfo;
-                const match = rawResponse.match(/"([^"]+)" by (.+?)(?:\s|$)/);
-                if (match) {
-                    const songName = match[1];
-                    const artistName = match[2].trim().replace(/\.$/, '');
-                    const description = rawResponse.replace(`A perfect song for your request is '${songName}' by ${artistName}.`, '').trim();
-                    songTitle.textContent = `"${songName}" by ${artistName}`;
-                    songDescription.textContent = description;
-                    let spotifyLink = null;
-                    const songInCatalog = mySongData.find(s => s.title === songName && s.artist === artistName);
-                    if (songInCatalog) {
-                        const artistId = artistIds[artistName];
-                        if (artistId) {
-                            spotifyLink = await searchSpotifyById(songName, artistId);
-                            debugOutput.textContent += `\nParsed Song Name: "${songName}"\nParsed Artist Name: "${artistName}"\nFound song in catalog. Artist ID: ${artistId}\nSpotify Link Found: ${spotifyLink}`;
+                const candidate = result.candidates?.[0];
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    recommendationText = candidate.content.parts[0].text;
+                    debugOutput.innerHTML += `AI Raw Response: "${recommendationText}"\n`;
+                    const match = recommendationText.match(/'([^']+)' by (.+)/);
+                    if (match) {
+                        const songName = match[1];
+                        const artistName = match[2];
+                        debugOutput.innerHTML += `Parsed Song Name: "${songName}"\n`;
+                        debugOutput.innerHTML += `Parsed Artist Name: "${artistName}"\n`;
+                        const foundSong = mySongData.find(song => song.title === songName && song.artist === artistName);
+                        if (foundSong) {
+                            debugOutput.innerHTML += `Found song in catalog. Artist ID: ${foundSong.artistId}\n`;
+                            const spotifyQuery = `track:${encodeURIComponent(foundSong.title)} artist:${encodeURIComponent(foundSong.artistId)}`;
+                            spotifyLink = await searchSpotify(spotifyQuery);
+                        } else {
+                            const spotifyQuery = `track:${encodeURIComponent(songName)} artist:${encodeURIComponent(artistName)}`;
+                            spotifyLink = await searchSpotify(spotifyQuery);
                         }
+                        songTitle.textContent = `"${songName}" by ${artistName}`;
+                        let descriptionText = recommendationText.split('.').slice(1).join('.').trim();
+                        songDescription.textContent = descriptionText || recommendationText;
+                        if (spotifyLink) {
+                            songLink.href = spotifyLink;
+                            songLink.textContent = "Listen on Spotify";
+                            songLink.classList.remove('spotify-link-disabled');
+                        } else {
+                            songLink.href = "javascript:void(0)";
+                            songLink.textContent = "Link not found on Spotify.";
+                            songLink.classList.add('spotify-link-disabled');
+                        }
+                        recommendationResult.classList.remove('hidden');
+                        nextRecommendationBtn.classList.remove('hidden');
                     } else {
-                        spotifyLink = await searchSpotify(`${songName} ${artistName}`);
-                        debugOutput.textContent += `\nParsed Song Name: "${songName}"\nParsed Artist Name: "${artistName}"\nSong not in catalog. General search used.\nSpotify Link Found: ${spotifyLink}`;
-                    }
-                    if (spotifyLink) {
-                        songLink.href = spotifyLink;
-                        songLink.textContent = "Listen on Spotify";
-                        songLink.classList.remove('spotify-link-disabled');
-                    } else {
-                        songLink.href = "javascript:void(0)";
-                        songLink.textContent = "Link not found on Spotify.";
-                        songLink.classList.add('spotify-link-disabled');
-                    }
-                    recommendationResult.classList.remove('hidden');
-                    nextRecommendationBtn.classList.remove('hidden');
-                    const newRec = {
-                        title: songName,
-                        artist: artistName,
-                        link: spotifyLink
-                    };
-                    currentRecommendations.push(newRec);
-                    const recElement = document.createElement('div');
-                    recElement.innerHTML = `<h4 class="font-medium text-gray-700">"${songName}" by ${artistName}</h4>`;
-                    if (spotifyLink) {
-                        recElement.innerHTML += `<a href="${spotifyLink}" target="_blank" class="text-xs text-indigo-500 hover:underline">Listen on Spotify</a>`;
-                    } else {
-                        recElement.innerHTML += `<span class="text-xs text-gray-500">Link not found on Spotify.</span>`;
-                    }
-                    if (isAnother) {
-                        previousList.appendChild(recElement);
-                    } else {
-                        previousList.innerHTML = '';
-                        previousList.appendChild(recElement);
+                        throw new Error('Could not parse song title and artist from AI response.');
                     }
                 } else {
-                    throw new Error('Could not parse song title and artist from AI response.');
+                    throw new Error('No recommendation found in the response.');
                 }
             } catch (error) {
                 console.error("Fetch error:", error);
@@ -818,17 +776,38 @@ AI Raw Response: "${rawResponse}"`;
                 errorAlert.classList.remove('hidden');
             } finally {
                 loadingIndicator.classList.add('hidden');
-                recommendBtn.disabled = false;
             }
         }
+        recommendBtn.addEventListener('click', async () => {
+            await getRecommendation();
+        });
+        getAnotherBtn.addEventListener('click', async () => {
+            const currentRec = {
+                title: songTitle.textContent,
+                description: songDescription.textContent
+            };
+            let existingRecs = JSON.parse(localStorage.getItem('previousRecs')) || [];
+            existingRecs.push(currentRec);
+            localStorage.setItem('previousRecs', JSON.stringify(existingRecs));
+            previousList.innerHTML = '';
+            existingRecs.forEach(rec => {
+                const recDiv = document.createElement('div');
+                recDiv.classList.add('p-3', 'bg-white', 'rounded-lg', 'shadow');
+                recDiv.innerHTML = `<div class="font-bold text-gray-800">${rec.title}</div><div class="text-gray-600 mt-1">${rec.description}</div>`;
+                previousList.appendChild(recDiv);
+            });
+            previousRecommendations.classList.remove('hidden');
+            await getRecommendation();
+        });
         promptInput.addEventListener('keypress', (event) => {
             if (event.key === 'Enter') {
                 recommendBtn.click();
             }
         });
-        closeMessageBtn.addEventListener('click', () => {
-            messageBox.classList.add('hidden');
-        });
+        function showMessage(message) {
+            messageContent.textContent = message;
+            messageBox.classList.remove('hidden');
+        }
     </script>
 </body>
 
