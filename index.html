@@ -263,7 +263,7 @@
             currentPrompt = prompt;
 
             debugOutput.classList.remove('hidden');
-            debugOutput.innerHTML = `Beginning recommendation process...\n`;
+            debugOutput.innerHTML += `Button pressed. Beginning recommendation process...\n`;
 
             if (prompt === "") {
                 showMessage("Please enter a topic, mood, or genre to get a recommendation.");
